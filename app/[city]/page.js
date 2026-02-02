@@ -7,10 +7,23 @@ import Categories from "@/components/cities/Categories";
 import NearbyWrapper from "@/components/cities/NearbyWrapper";
 import SliderWrapper from "@/components/cities/SliderWrapper";
 import HeaderWrapper from "@/components/HeaderWrapper";
-import { getCityData } from "@/utils/cityData";
 
 async function fetchCityData(citySlug) {
-  return await getCityData(citySlug);
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/city/${citySlug}`, {
+      cache: 'no-store' // Ensure fresh data
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch city data');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching city data:', error);
+    return null;
+  }
 }
 
 export default async function CityPage({ params }) {
