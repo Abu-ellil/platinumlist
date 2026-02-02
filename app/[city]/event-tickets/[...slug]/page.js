@@ -4,104 +4,48 @@ import HeaderWrapper from "@/components/HeaderWrapper";
 import Navgation from "@/components/event-tickets/Navgation";
 import SliderWrapper from "@/components/event-tickets/SliderWrapper";
 import Footer from "@/components/Footer";
+import { getEventData } from "@/utils/eventData";
+import { getCityData } from "@/utils/cityData";
 
 async function fetchEventData(slug, city) {
-    try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const url = `${baseUrl}/api/events?slug=${encodeURIComponent(slug)}&city=${encodeURIComponent(city)}`;
+    const result = await getEventData(slug, city);
+    
+    // Process pricing data to ensure consistent format (preserving original page logic)
+    if (result.success && result.data) {
+        const eventData = result.data;
         
-        console.log('Fetching event data from:', url);
+        // Ensure pricing data includes currency
+        const currency = eventData.pricing_currency || eventData.currency || 'SAR';
         
-        const response = await fetch(url, {
-            next: { revalidate: 300 }, // Cache for 5 minutes
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`API request failed: ${response.status} - ${errorText}`);
-            return { 
-                success: false, 
-                error: `Failed to fetch event data: ${response.status}` 
-            };
-        }
-        
-        const data = await response.json();
-        
-        // Process pricing data to ensure consistent format
-        if (data.success && data.data) {
-            const eventData = data.data;
-            
-            // Ensure pricing data includes currency
-            const currency = eventData.pricing_currency || eventData.currency || 'SAR';
-            
-            // Format pricing data consistently
-            const formatPrice = (price) => {
-                if (!price) return null;
-                // Remove any existing currency symbols and formatting
-                const numericPrice = price.toString().replace(/[^0-9.]/g, '');
-                return `${numericPrice} ${currency}`;
-            };
-
-            // Update all price fields with consistent formatting
-            eventData.global_price = formatPrice(eventData.global_price);
-            eventData.gold_price = formatPrice(eventData.gold_price);
-            eventData.platinum_price = formatPrice(eventData.platinum_price);
-            eventData.vip_price = formatPrice(eventData.vip_price);
-            eventData.silver_price = formatPrice(eventData.silver_price);
-            eventData.price = formatPrice(eventData.price);
-            eventData.crossed_price = formatPrice(eventData.crossed_price);
-            
-            // Ensure currency is explicitly set
-            eventData.pricing_currency = currency;
-            
-            // Store formatted data in localStorage for checkout
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('eventData', JSON.stringify({
-                    ...eventData,
-                    currency: currency,
-                    pricing: {
-                        global: eventData.global_price,
-                        gold: eventData.gold_price,
-                        platinum: eventData.platinum_price,
-                        vip: eventData.vip_price,
-                        silver: eventData.silver_price
-                    }
-                }));
-            }
-
-            data.data = eventData;
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('Error fetching event data:', error);
-        return { 
-            success: false, 
-            error: error.message 
+        // Format pricing data consistently
+        const formatPrice = (price) => {
+            if (!price) return null;
+            // Remove any existing currency symbols and formatting
+            const numericPrice = price.toString().replace(/[^0-9.]/g, '');
+            return `${numericPrice} ${currency}`;
         };
+
+        // Update all price fields with consistent formatting
+        eventData.global_price = formatPrice(eventData.global_price);
+        eventData.gold_price = formatPrice(eventData.gold_price);
+        eventData.platinum_price = formatPrice(eventData.platinum_price);
+        eventData.vip_price = formatPrice(eventData.vip_price);
+        eventData.silver_price = formatPrice(eventData.silver_price);
+        eventData.price = formatPrice(eventData.price);
+        eventData.crossed_price = formatPrice(eventData.crossed_price);
+        
+        // Ensure currency is explicitly set
+        eventData.pricing_currency = currency;
+        
+        result.data = eventData;
     }
+    
+    return result;
 }
 
 async function fetchCityData(citySlug) {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/city/${citySlug}`, {
-        cache: 'no-store' // Ensure fresh data
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch city data');
-      }
-      
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching city data:', error);
-      return null;
-    }
-  }
+    return await getCityData(citySlug);
+}
 const EventTickets = async ({ params }) => {
     const { slug, city } = await params;
     
