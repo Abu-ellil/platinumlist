@@ -554,6 +554,12 @@ export async function getEventData(slug, city = 'cairo', skipCache = false) {
 
     const result = await scrapePage(scrapingOptions);
 
+    if (result.success) {
+      console.log(`[EventData] Successfully scraped event: ${slug}`);
+    } else {
+      console.error(`[EventData] Failed to scrape event: ${slug}, Error: ${result.error}`);
+    }
+
     if (!result.success) {
       return {
         success: false,

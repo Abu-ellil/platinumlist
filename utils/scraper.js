@@ -283,6 +283,23 @@ export async function scrapePage(options = {}) {
       ? content 
       : await dataExtractor(content, page, cheerio, url);
 
+    // Log the extracted data for debugging
+    console.log('--- Scraped Data Start ---');
+    console.log(`URL: ${url}`);
+    if (typeof extractedData === 'object') {
+      console.log('Data structure keys:', Object.keys(extractedData));
+      // Log a preview of the data (first 500 characters if it's a string, or the whole object if small)
+      const dataString = JSON.stringify(extractedData, null, 2);
+      if (dataString.length > 1000) {
+        console.log('Data Preview (first 1000 chars):', dataString.substring(0, 1000) + '...');
+      } else {
+        console.log('Full Data:', dataString);
+      }
+    } else {
+      console.log('Data (non-object):', String(extractedData).substring(0, 500) + '...');
+    }
+    console.log('--- Scraped Data End ---');
+
     // Cache the result if caching is enabled
     if (!disableCache && cacheKey) {
       try {

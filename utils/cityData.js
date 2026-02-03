@@ -351,6 +351,12 @@ export async function getCityData(slug) {
     // Use the scraper middleware
     const result = await scrapePage(scrapingOptions);
 
+    if (result.success) {
+      console.log(`[CityData] Successfully scraped city: ${slug}, Found ${result.data.events?.length || 0} events`);
+    } else {
+      console.error(`[CityData] Failed to scrape city: ${slug}, Error: ${result.error}`);
+    }
+
     if (!result.success) {
       if (formattedManualEvents.length > 0) {
         return {

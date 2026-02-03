@@ -12,7 +12,7 @@ const nextConfig = {
   serverExternalPackages: [
     'puppeteer-extra', 
     'puppeteer-extra-plugin-stealth', 
-    'better-sqlite3',
+    'mongoose',
     'ssh2',
     'archiver'
   ],
