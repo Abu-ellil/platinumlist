@@ -1,6 +1,10 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import * as cheerio from 'cheerio';
 import { getCache } from './cache.js';
+
+// Add stealth plugin to puppeteer
+puppeteer.use(StealthPlugin());
 
 // Get cache instance with scraper-specific options
 const cache = getCache({
@@ -67,33 +71,66 @@ export async function scrapePage(options = {}) {
   try {
     console.log(`Scraping: ${url}`);
 
-    // Default Puppeteer options optimized for Linux
-    const defaultPuppeteerOptions = {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding'
-      ],
-      ...puppeteerOptions
-    };
+    const isVercel = process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL;
 
-    browser = await puppeteer.launch(defaultPuppeteerOptions);
+    // Handle Vercel environment
+    if (isVercel) {
+      console.log('Running on Vercel, checking for remote browser or chromium...');
+      
+      // If a remote browser URL is provided, use it
+      if (process.env.BROWSER_WSE_ENDPOINT) {
+        console.log('Connecting to remote browser...');
+        browser = await puppeteer.connect({
+          browserWSEndpoint: process.env.BROWSER_WSE_ENDPOINT,
+        });
+      } else {
+        // On Vercel, standard puppeteer.launch() will fail.
+        // We need puppeteer-core and @sparticuz/chromium (not installed)
+        // For now, we'll try to fallback to a simple fetch if possible, 
+        // or throw a descriptive error.
+        throw new Error('Puppeteer is not supported on Vercel without @sparticuz/chromium or a remote browser. Please set BROWSER_WSE_ENDPOINT environment variable.');
+      }
+    } else {
+      // Find chromium path on Linux
+      let linuxChromiumPath = '/usr/bin/chromium-browser';
+      if (process.platform === 'linux') {
+        const fs = await import('fs');
+        if (!fs.existsSync(linuxChromiumPath)) {
+          linuxChromiumPath = '/usr/bin/chromium';
+        }
+      }
+
+      // Default Puppeteer options optimized for Linux and bypassing detection
+      const defaultPuppeteerOptions = {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-blink-features=AutomationControlled',
+          '--window-size=1920,1080'
+        ],
+        executablePath: process.platform === 'linux' ? linuxChromiumPath : undefined,
+        ...puppeteerOptions
+      };
+
+      browser = await puppeteer.launch(defaultPuppeteerOptions);
+    }
     const page = await browser.newPage();
 
     // Default page options
     const defaultPageOptions = {
-      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       viewport: { width: 1920, height: 1080 },
-      timeout: 60000,
-      waitUntil: 'domcontentloaded',
+      timeout: 90000, // Increased timeout for VPS
+      waitUntil: 'networkidle2', // Wait for network to be idle
       ...pageOptions
     };
 

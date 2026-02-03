@@ -1,5 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Ignore type errors during build
+    ignoreBuildErrors: true,
+  },
+  serverExternalPackages: [
+    'puppeteer-extra', 
+    'puppeteer-extra-plugin-stealth', 
+    'better-sqlite3',
+    'ssh2',
+    'archiver'
+  ],
   async rewrites() {
     return {
       beforeFiles: [

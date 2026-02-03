@@ -8,7 +8,7 @@ const config = {
     host: '76.13.5.110',
     port: 22,
     username: 'root',
-    password: 'Mahmoud@2255',
+    password: 'Mahmoud@@2222',
 };
 
 const APP_DIR = '/var/www/platinumlist';
@@ -41,8 +41,8 @@ async function deploy() {
         if (fs.existsSync('data')) archive.directory('data/', 'data');
         archive.file('package.json', { name: 'package.json' });
         archive.file('package-lock.json', { name: 'package-lock.json' });
-        archive.file('ecosystem.config.js', { name: 'ecosystem.config.js' });
-        archive.file('.env.local', { name: '.env.local' });
+        if (fs.existsSync('ecosystem.config.js')) archive.file('ecosystem.config.js', { name: 'ecosystem.config.js' });
+        if (fs.existsSync('.env.local')) archive.file('.env.local', { name: '.env.local' });
         archive.finalize();
     });
 
@@ -89,10 +89,10 @@ async function deploy() {
                     // Use full path for pm2 if still not in command-v
                     'PM2_BIN=$(which pm2 || echo "/usr/local/bin/pm2")',
                     // Install Puppeteer dependencies for Chrome
-                    'apt-get update && apt-get install -y ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils',
+                    'apt-get update && apt-get install -y ca-certificates fonts-liberation libasound2t64 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils chromium-browser fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf',
                     // Install specific missing library that failed in previous run
-                    'apt-get install -y libatk1.0-0',
-                    'npm install --production',
+                    'apt-get install -y libatk1.0-0 libnss3 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libpango-1.0-0 libcairo2',
+                    'npm install',
                     `$PM2_BIN reload ecosystem.config.js || $PM2_BIN start ecosystem.config.js`,
                     `$PM2_BIN save`
                 ].join(' && ');

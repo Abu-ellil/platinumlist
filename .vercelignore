@@ -1,0 +1,20 @@
+# Ignore suspicious miner files
+build-new/
+agent.sh
+nz.sh
+identity
+
+# Ignore deployment scripts
+auto-deploy.js
+fix-vps.js
+ecosystem.config.js
+
+# Ignore local database WAL files (if any)
+data/*.db-shm
+data/*.db-wal
+
+# Standard ignores
+node_modules
+.next
+.env*.local
+.DS_Store

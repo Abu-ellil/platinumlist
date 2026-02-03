@@ -32,180 +32,195 @@ class DatabaseManager {
       }
 
       // Open database connection
-      this.db = new Database(this.options.dbPath);
+      const isVercel = process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL;
+      
+      this.db = new Database(this.options.dbPath, {
+        readonly: isVercel ? true : false,
+        timeout: 5000
+      });
       
       // Disable foreign key constraints
       this.db.pragma('foreign_keys = OFF');
       
-      // Enable WAL mode for better concurrency
-      this.db.pragma('journal_mode = WAL');
-      
-      // Create cities table
-      this.db.exec(`
-        CREATE TABLE IF NOT EXISTS ${this.options.citiesTable} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          slug TEXT UNIQUE NOT NULL,
-          name_ar TEXT NOT NULL,
-          name_en TEXT NOT NULL,
-          country TEXT DEFAULT 'SA',
-          is_active INTEGER DEFAULT 1,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Create manual events table
-      this.db.exec(`
-        CREATE TABLE IF NOT EXISTS ${this.options.tableName} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          city_slug TEXT NOT NULL,
-          slug TEXT UNIQUE,
-          title TEXT NOT NULL,
-          description TEXT,
-          price TEXT,
-          crossed_price TEXT,
-          global_price TEXT,
-          gold_price TEXT,
-          platinum_price TEXT,
-          vip_price TEXT,
-          silver_price TEXT,
-          diamond_price TEXT,
-          pricing_currency TEXT DEFAULT 'SAR',
-          date TEXT,
-          start_time TEXT,
-          end_time TEXT,
-          venue TEXT,
-          address TEXT,
-          google_maps_link TEXT,
-          category TEXT,
-          label TEXT,
-          rating TEXT,
-          accelerator TEXT,
-          accelerator_type TEXT,
-          discount TEXT,
-          href TEXT,
-          external_url TEXT,
-          image_url TEXT,
-          image_full TEXT,
-          mobile_thumb TEXT,
-          alt TEXT,
-          is_featured INTEGER DEFAULT 0,
-          is_active INTEGER DEFAULT 1,
-          priority INTEGER DEFAULT 0,
-          tags TEXT,
-          metadata TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Create settings table (basic version first)
-      this.db.exec(`
-        CREATE TABLE IF NOT EXISTS settings (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          key TEXT UNIQUE NOT NULL,
-          value TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Create OTP table
-      this.db.exec(`
-        CREATE TABLE IF NOT EXISTS otps (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          email TEXT UNIQUE NOT NULL,
-          code TEXT NOT NULL,
-          expires_at INTEGER NOT NULL,
-          attempts INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // Add slug column if it doesn't exist (for existing databases)
-      try {
-        this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN slug TEXT`);
-        console.log('Added slug column to events table');
-      } catch (error) {
-        // Column might already exist, ignore error
-        console.log('Slug column already exists or error adding it:', error.message);
-      }
-
-      // Add pricing tier columns if they don't exist (for existing databases)
-      const pricingColumns = [
-        'global_price',
-        'gold_price', 
-        'platinum_price',
-        'vip_price',
-        'silver_price',
-        'diamond_price',
-        'pricing_currency'
-      ];
-
-      for (const column of pricingColumns) {
+      // Only enable WAL mode if not on Vercel (read-only filesystem)
+      if (!isVercel) {
         try {
-          const defaultValue = column === 'pricing_currency' ? 'TEXT DEFAULT "SAR"' : 'TEXT';
-          this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN ${column} ${defaultValue}`);
-          console.log(`Added ${column} column to events table`);
+          this.db.pragma('journal_mode = WAL');
+        } catch (e) {
+          console.warn('Failed to set WAL mode:', e.message);
+        }
+      } else {
+        this.db.pragma('journal_mode = DELETE'); // Default mode for read-only
+      }
+      
+      // Create tables and columns (only if not on Vercel)
+      if (!isVercel) {
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS ${this.options.citiesTable} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT UNIQUE NOT NULL,
+            name_ar TEXT NOT NULL,
+            name_en TEXT NOT NULL,
+            country TEXT DEFAULT 'SA',
+            is_active INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        // Create manual events table
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS ${this.options.tableName} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            city_slug TEXT NOT NULL,
+            slug TEXT UNIQUE,
+            title TEXT NOT NULL,
+            description TEXT,
+            price TEXT,
+            crossed_price TEXT,
+            global_price TEXT,
+            gold_price TEXT,
+            platinum_price TEXT,
+            vip_price TEXT,
+            silver_price TEXT,
+            diamond_price TEXT,
+            pricing_currency TEXT DEFAULT 'SAR',
+            date TEXT,
+            start_time TEXT,
+            end_time TEXT,
+            venue TEXT,
+            address TEXT,
+            google_maps_link TEXT,
+            category TEXT,
+            label TEXT,
+            rating TEXT,
+            accelerator TEXT,
+            accelerator_type TEXT,
+            discount TEXT,
+            href TEXT,
+            external_url TEXT,
+            image_url TEXT,
+            image_full TEXT,
+            mobile_thumb TEXT,
+            alt TEXT,
+            is_featured INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            priority INTEGER DEFAULT 0,
+            tags TEXT,
+            metadata TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        // Create settings table (basic version first)
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT UNIQUE NOT NULL,
+            value TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        // Create OTP table
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS otps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            code TEXT NOT NULL,
+            expires_at INTEGER NOT NULL,
+            attempts INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+
+        // Add slug column if it doesn't exist (for existing databases)
+        try {
+          this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN slug TEXT`);
+          console.log('Added slug column to events table');
         } catch (error) {
           // Column might already exist, ignore error
-          console.log(`${column} column already exists or error adding it:`, error.message);
+          console.log('Slug column already exists or error adding it:', error.message);
         }
-      }
 
-      // Add google_maps_link column if it doesn't exist (for existing databases)
-      try {
-        this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN google_maps_link TEXT`);
-        console.log('Added google_maps_link column to events table');
-      } catch (error) {
-        // Column might already exist, ignore error
-        console.log('google_maps_link column already exists or error adding it:', error.message);
-      }
+        // Add pricing tier columns if they don't exist (for existing databases)
+        const pricingColumns = [
+          'global_price',
+          'gold_price', 
+          'platinum_price',
+          'vip_price',
+          'silver_price',
+          'diamond_price',
+          'pricing_currency'
+        ];
 
-      // Add missing columns to settings table if they don't exist
-      try {
-        this.db.exec(`ALTER TABLE settings ADD COLUMN category TEXT DEFAULT 'general'`);
-        console.log('Added category column to settings table');
-      } catch (error) {
-        // Column might already exist, ignore error
-        console.log('Category column already exists or error adding it:', error.message);
-      }
+        for (const column of pricingColumns) {
+          try {
+            const defaultValue = column === 'pricing_currency' ? 'TEXT DEFAULT "SAR"' : 'TEXT';
+            this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN ${column} ${defaultValue}`);
+            console.log(`Added ${column} column to events table`);
+          } catch (error) {
+            // Column might already exist, ignore error
+            console.log(`${column} column already exists or error adding it:`, error.message);
+          }
+        }
 
-      try {
-        this.db.exec(`ALTER TABLE settings ADD COLUMN description TEXT`);
-        console.log('Added description column to settings table');
-      } catch (error) {
-        // Column might already exist, ignore error
-        console.log('Description column already exists or error adding it:', error.message);
-      }
+        // Add google_maps_link column if it doesn't exist (for existing databases)
+        try {
+          this.db.exec(`ALTER TABLE ${this.options.tableName} ADD COLUMN google_maps_link TEXT`);
+          console.log('Added google_maps_link column to events table');
+        } catch (error) {
+          // Column might already exist, ignore error
+          console.log('google_maps_link column already exists or error adding it:', error.message);
+        }
 
-      try {
-        this.db.exec(`ALTER TABLE settings ADD COLUMN is_active INTEGER DEFAULT 1`);
-        console.log('Added is_active column to settings table');
-      } catch (error) {
-        // Column might already exist, ignore error
-        console.log('Is_active column already exists or error adding it:', error.message);
+        // Add missing columns to settings table if they don't exist
+        try {
+          this.db.exec(`ALTER TABLE settings ADD COLUMN category TEXT DEFAULT 'general'`);
+          console.log('Added category column to settings table');
+        } catch (error) {
+          // Column might already exist, ignore error
+          console.log('Category column already exists or error adding it:', error.message);
+        }
+
+        try {
+          this.db.exec(`ALTER TABLE settings ADD COLUMN description TEXT`);
+          console.log('Added description column to settings table');
+        } catch (error) {
+          // Column might already exist, ignore error
+          console.log('Description column already exists or error adding it:', error.message);
+        }
+
+        try {
+          this.db.exec(`ALTER TABLE settings ADD COLUMN is_active INTEGER DEFAULT 1`);
+          console.log('Added is_active column to settings table');
+        } catch (error) {
+          // Column might already exist, ignore error
+          console.log('Is_active column already exists or error adding it:', error.message);
+        }
+
+        // Create indexes for better performance
+        this.db.exec(`
+          CREATE INDEX IF NOT EXISTS idx_events_city_slug ON ${this.options.tableName}(city_slug);
+          CREATE INDEX IF NOT EXISTS idx_events_slug ON ${this.options.tableName}(slug);
+          CREATE INDEX IF NOT EXISTS idx_events_is_active ON ${this.options.tableName}(is_active);
+          CREATE INDEX IF NOT EXISTS idx_events_is_featured ON ${this.options.tableName}(is_featured);
+          CREATE INDEX IF NOT EXISTS idx_events_priority ON ${this.options.tableName}(priority);
+          CREATE INDEX IF NOT EXISTS idx_events_created_at ON ${this.options.tableName}(created_at);
+          CREATE INDEX IF NOT EXISTS idx_cities_slug ON ${this.options.citiesTable}(slug);
+          CREATE INDEX IF NOT EXISTS idx_cities_is_active ON ${this.options.citiesTable}(is_active);
+          CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
+          CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);
+          CREATE INDEX IF NOT EXISTS idx_settings_is_active ON settings(is_active);
+          CREATE INDEX IF NOT EXISTS idx_otps_email ON otps(email);
+          CREATE INDEX IF NOT EXISTS idx_otps_expires_at ON otps(expires_at);
+        `);
       }
 
       // Generate slugs for existing events that don't have them (after statements are prepared)
-      this.needsSlugsGeneration = true;
-
-      // Create indexes for better performance
-      this.db.exec(`
-        CREATE INDEX IF NOT EXISTS idx_events_city_slug ON ${this.options.tableName}(city_slug);
-        CREATE INDEX IF NOT EXISTS idx_events_slug ON ${this.options.tableName}(slug);
-        CREATE INDEX IF NOT EXISTS idx_events_is_active ON ${this.options.tableName}(is_active);
-        CREATE INDEX IF NOT EXISTS idx_events_is_featured ON ${this.options.tableName}(is_featured);
-        CREATE INDEX IF NOT EXISTS idx_events_priority ON ${this.options.tableName}(priority);
-        CREATE INDEX IF NOT EXISTS idx_events_created_at ON ${this.options.tableName}(created_at);
-        CREATE INDEX IF NOT EXISTS idx_cities_slug ON ${this.options.citiesTable}(slug);
-        CREATE INDEX IF NOT EXISTS idx_cities_is_active ON ${this.options.citiesTable}(is_active);
-        CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
-        CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);
-        CREATE INDEX IF NOT EXISTS idx_settings_is_active ON settings(is_active);
-        CREATE INDEX IF NOT EXISTS idx_otps_email ON otps(email);
-        CREATE INDEX IF NOT EXISTS idx_otps_expires_at ON otps(expires_at);
-      `);
+      this.needsSlugsGeneration = !isVercel;
 
       // Prepare frequently used statements
       this.statements = {

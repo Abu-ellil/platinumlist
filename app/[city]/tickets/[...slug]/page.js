@@ -1,5 +1,5 @@
-import Hall from '@/components/tickets/Hall';
-import Header from '@/components/tickets/Header';
+import Hall from '@/components/tickets/Hall.jsx';
+import Header from '@/components/tickets/Header.jsx';
 
 export const metadata = {
   title: 'مسرحية غِريس في دبي أوبرا الجمعة 24 اكتوبر 2025 - مسرحية غِريس في دبي أوبرا الجمعة 24 اكتوبر 2025 - Platinumlist.net',
