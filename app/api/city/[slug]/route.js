@@ -5,8 +5,17 @@ import { getDatabase } from '../../../../utils/database.js';
 const db = getDatabase();
 
 // Custom data extractor for city events
-function cityEventsExtractor(content, page, cheerio) {
+function cityEventsExtractor(content, page, cheerio, baseUrl) {
   const $ = cheerio.load(content);
+  
+  // Helper function to convert relative URLs to absolute
+  const toAbsoluteUrl = (url) => {
+    if (!url) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('//')) return 'https:' + url;
+    const urlObj = new URL(baseUrl);
+    return url.startsWith('/') ? urlObj.origin + url : urlObj.origin + '/' + url;
+  };
   
   // Extract section information
   const sectionTitle = $('.section__title a').first().text().trim();
@@ -105,12 +114,12 @@ function cityEventsExtractor(content, page, cheerio) {
     // Extract label
     const label = $event.find('.carousel-item__label .image-label').text().trim();
     
-    // Extract images
-    const imageUrl = $event.find('img').attr('src') || $event.find('img').attr('data-src');
-    const imageFull = $event.find('source[media="(min-width: 414px)"]').attr('srcset') || 
-                     $event.find('source[media="(min-width: 414px)"]').attr('data-srcset');
-    const mobileThumb = $event.find('source[media="(max-width: 414px)"]').attr('srcset') || 
-                       $event.find('source[media="(max-width: 414px)"]').attr('data-srcset');
+    // Extract images and convert to absolute URLs
+    const imageUrl = toAbsoluteUrl($event.find('img').attr('src') || $event.find('img').attr('data-src'));
+    const imageFull = toAbsoluteUrl($event.find('source[media="(min-width: 414px)"]').attr('srcset') || 
+                     $event.find('source[media="(min-width: 414px)"]').attr('data-srcset'));
+    const mobileThumb = toAbsoluteUrl($event.find('source[media="(max-width: 414px)"]').attr('srcset') || 
+                       $event.find('source[media="(max-width: 414px)"]').attr('data-srcset'));
     
     // Extract alt text
     const alt = $event.find('img').attr('alt') || title;
@@ -164,6 +173,9 @@ function cityEventsExtractor(content, page, cheerio) {
     if (imageUrl && imageUrl.includes('data:image/svg+xml') && dataSrc) {
       imageUrl = dataSrc;
     }
+    
+    // Convert to absolute URL
+    imageUrl = toAbsoluteUrl(imageUrl);
     
     const alt = $city.find('img').attr('alt') || cityName;
     
@@ -255,6 +267,9 @@ function cityEventsExtractor(content, page, cheerio) {
     if (imageUrl && imageUrl.includes('data:image/svg+xml') && dataSrc) {
       imageUrl = dataSrc;
     }
+    
+    // Convert to absolute URL
+    imageUrl = toAbsoluteUrl(imageUrl);
     
     const alt = $img.attr('alt') || title;
     
@@ -360,7 +375,7 @@ function cityEventsExtractor(content, page, cheerio) {
         const eventPrice = $event.find('.main-header-top-event__price').text().trim();
         
         const $eventImg = $event.find('.main-header-top-event__image img');
-        const eventImage = $eventImg.attr('src');
+        const eventImage = toAbsoluteUrl($eventImg.attr('src'));
         const eventAlt = $eventImg.attr('alt');
         
         if (eventTitle && eventHref) {

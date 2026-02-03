@@ -16,6 +16,38 @@ const cache = getCache({
 });
 
 /**
+ * Convert relative URL to absolute URL
+ * @param {string} url - Relative or absolute URL
+ * @param {string} baseUrl - Base URL of the page being scraped
+ * @returns {string} - Absolute URL
+ */
+function toAbsoluteUrl(url, baseUrl) {
+  if (!url) return url;
+  
+  // If already absolute, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Handle protocol-relative URLs (//cdn.example.com/image.jpg)
+  if (url.startsWith('//')) {
+    return 'https:' + url;
+  }
+  
+  // Parse base URL to get origin
+  const urlObj = new URL(baseUrl);
+  const origin = urlObj.origin;
+  
+  // Handle root-relative URLs (/path/to/file)
+  if (url.startsWith('/')) {
+    return origin + url;
+  }
+  
+  // Handle relative URLs (path/to/file)
+  return origin + '/' + url;
+}
+
+/**
  * Puppeteer scraper middleware with persistent caching
  * @param {Object} options - Configuration options
  * @param {string} options.url - URL to scrape
@@ -246,7 +278,10 @@ export async function scrapePage(options = {}) {
     }
 
     // Extract data using the provided function or default
-    const extractedData = pageOptions.rawContent ? content : await dataExtractor(content, page, cheerio);
+    // Pass the base URL to data extractor for converting relative URLs
+    const extractedData = pageOptions.rawContent 
+      ? content 
+      : await dataExtractor(content, page, cheerio, url);
 
     // Cache the result if caching is enabled
     if (!disableCache && cacheKey) {
