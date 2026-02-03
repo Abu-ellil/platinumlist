@@ -254,81 +254,29 @@ const HeaderMobile = ({ navigationData = { mainLinks: [], dropdowns: {} }, cityD
                                 </ul>
                             </div>
                             <div className="main-header-top-events">
-                                <div className="main-header-top-events__title">أبرز الفعاليات</div>
+                                <div className="main-header-top-events__title">{navigationData.dropdowns.events?.title || 'أبرز الفعاليات'}</div>
                                 <div className="main-header-top-events__item-list" data-header-links-top-events-content="event">
                                     <div className="main-header-top-events__column">
-                                        <div className="main-header-top-event">
-                                            <div className="main-header-top-event__image">
-                                                <div className="picture-container picture-container--square">
-                                                    <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/180-beach-club`}>
-                                                        <img src="/upload/event/180_beach_club_in_khobar_2025_apr_03_2025_jun_29_al_azizyah_beach_98388-featuredmobilethumb-en1749453405.jpg" alt="شاطئ 180 في الخبر" />
-                                                    </a>
+                                        {navigationData.dropdowns.events?.topEvents?.slice(0, 4).map((event, index) => (
+                                            <div className="main-header-top-event" key={`event-${index}`}>
+                                                <div className="main-header-top-event__image">
+                                                    <div className="picture-container picture-container--square">
+                                                        <a href={event.href || '#'}>
+                                                            <img src={event.imageUrl || '/images/default-event.jpg'} alt={event.alt || event.title} />
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="main-header-top-event__data">
-                                                <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/180-beach-club`} className="main-header-top-event__name string-trim">شاطئ 180 في الخبر</a>
-                                                <div className="dot-wrapper">
-                                                    <div className="main-header-top-event__date string-trim">الخميس 3 ابريل–الخميس 31 يوليو</div>
-                                                    <div className="dot dot--top-events"></div>
-                                                    <div className="main-header-top-event__price string-trim"><span className="price price--">1,406.05 EGP</span></div>
+                                                <div className="main-header-top-event__data">
+                                                    <a href={event.href || '#'} className="main-header-top-event__name string-trim">{event.title}</a>
+                                                    <div className="dot-wrapper">
+                                                        <div className="main-header-top-event__date string-trim">{event.date}</div>
+                                                        <div className="dot dot--top-events"></div>
+                                                        <div className="main-header-top-event__price string-trim"><span className="price price--">{event.price}</span></div>
+                                                    </div>
                                                 </div>
+                                                <div className="clearfix"></div>
                                             </div>
-                                            <div className="clearfix"></div>
-                                        </div>
-                                        <div className="main-header-top-event">
-                                            <div className="main-header-top-event__image">
-                                                <div className="picture-container picture-container--square">
-                                                    <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/banana-vip-camps`}>
-                                                        <img src="/upload/event/banana_chalets_2025_jan_03_2025_jun_30_banana_beach_half_moon_96906-featuredmobilethumb-en1749453343.jpg" alt="شاليهات بنانا" />
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div className="main-header-top-event__data">
-                                                <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/banana-vip-camps`} className="main-header-top-event__name string-trim">شاليهات بنانا</a>
-                                                <div className="dot-wrapper">
-                                                    <div className="main-header-top-event__date string-trim">الجمعة 3 يناير–الخميس 31 يوليو</div>
-                                                    <div className="dot dot--top-events"></div>
-                                                    <div className="main-header-top-event__price string-trim"><span className="price price--">6,113.26 EGP</span></div>
-                                                </div>
-                                            </div>
-                                            <div className="clearfix"></div>
-                                        </div>
-                                        <div className="main-header-top-event">
-                                            <div className="main-header-top-event__image">
-                                                <div className="picture-container picture-container--square">
-                                                    <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/96769/banana-beach-events-halfmoon`}>
-                                                        <img src="/upload/event/banana_beach_events_halfmoon_2025_jan_02_2025_jun_30_banana_beach_half_moon_96769-featuredmobilethumb-en1749453341.png" alt="فعالية شاطئ بنانا - هافمون" />
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div className="main-header-top-event__data">
-                                                <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/96769/banana-beach-events-halfmoon`} className="main-header-top-event__name string-trim">فعالية شاطئ بنانا - هافمون</a>
-                                                <div className="dot-wrapper">
-                                                    <div className="main-header-top-event__date string-trim">الخميس 2 يناير–الجمعة 1 اغسطس</div>
-                                                    <div className="dot dot--top-events"></div>
-                                                    <div className="main-header-top-event__price string-trim"><span className="price price--">135.85 EGP</span></div>
-                                                </div>
-                                            </div>
-                                            <div className="clearfix"></div>
-                                        </div>
-                                        <div className="main-header-top-event">
-                                            <div className="main-header-top-event__image">
-                                                <div className="picture-container picture-container--square">
-                                                    <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/99765/family-park-at-sunset-beach-resort`}>
-                                                        <img src="/upload/event/family_park_at_sunset_beach_resort_2025_jun_03_2025_jun_28_sunset_beach_resort_marina_spa_99765-featuredmobilethumb-en1749453553.png" alt="الحديقة المائية في منتجع شاطئ الغروب" />
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div className="main-header-top-event__data">
-                                                <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/99765/family-park-at-sunset-beach-resort`} className="main-header-top-event__name string-trim">الحديقة المائية في منتجع شاطئ الغروب</a>
-                                                <div className="dot-wrapper">
-                                                    <div className="main-header-top-event__date string-trim">الثلاثاء 3 يونيو–الجمعة 29 اغسطس</div>
-                                                    <div className="dot dot--top-events"></div>
-                                                    <div className="main-header-top-event__price string-trim"><span className="price price--">1,630.20 EGP</span></div>
-                                                </div>
-                                            </div>
-                                            <div className="clearfix"></div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -355,27 +303,29 @@ const HeaderMobile = ({ navigationData = { mainLinks: [], dropdowns: {} }, cityD
                                 </li>
                             </ul>
                             <div className="main-header-top-events">
-                                <div className="main-header-top-events__title">أبرز الفعاليات والأنشطة الترفيهية</div>
+                                <div className="main-header-top-events__title">{navigationData.dropdowns.attractions?.title || 'أبرز الفعاليات والأنشطة الترفيهية'}</div>
                                 <div className="main-header-top-events__item-list" data-header-links-top-events-content="attraction">
                                     <div className="main-header-top-events__column">
-                                        <div className="main-header-top-event">
-                                            <div className="main-header-top-event__image">
-                                                <div className="picture-container picture-container--square">
-                                                    <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/eva-virtual`}>
-                                                        <img src="/upload/event/eva_virtual_reality_gaming_in_khobar_2025_feb_21_2025_jul_01_eva_al_khobar_97886-featuredmobilethumb-en1749453378.png" alt="عالم إيفا لألعاب الواقع الإفتراضي في الخبر" />
-                                                    </a>
+                                        {navigationData.dropdowns.attractions?.topEvents?.slice(0, 4).map((event, index) => (
+                                            <div className="main-header-top-event" key={`attraction-${index}`}>
+                                                <div className="main-header-top-event__image">
+                                                    <div className="picture-container picture-container--square">
+                                                        <a href={event.href || '#'}>
+                                                            <img src={event.imageUrl || '/images/default-event.jpg'} alt={event.alt || event.title} />
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="main-header-top-event__data">
-                                                <a href={`https://${citySlug}.platinumlist.net/ar/event-tickets/eva-virtual`} className="main-header-top-event__name string-trim">عالم إيفا لألعاب الواقع الإفتراضي في الخبر</a>
-                                                <div className="dot-wrapper">
-                                                    <div className="main-header-top-event__date string-trim">الجمعة 21 فبراير–الإثنين 1 سبتمبر</div>
-                                                    <div className="dot dot--top-events"></div>
-                                                    <div className="main-header-top-event__price string-trim"><span className="price price--color-red">التذاكر بيعت بالكامل</span></div>
+                                                <div className="main-header-top-event__data">
+                                                    <a href={event.href || '#'} className="main-header-top-event__name string-trim">{event.title}</a>
+                                                    <div className="dot-wrapper">
+                                                        <div className="main-header-top-event__date string-trim">{event.date}</div>
+                                                        <div className="dot dot--top-events"></div>
+                                                        <div className="main-header-top-event__price string-trim"><span className="price price--">{event.price}</span></div>
+                                                    </div>
                                                 </div>
+                                                <div className="clearfix"></div>
                                             </div>
-                                            <div className="clearfix"></div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
