@@ -84,11 +84,32 @@ export async function scrapePage(options = {}) {
           browserWSEndpoint: process.env.BROWSER_WSE_ENDPOINT,
         });
       } else {
-        // On Vercel, standard puppeteer.launch() will fail.
-        // We need puppeteer-core and @sparticuz/chromium (not installed)
-        // For now, we'll try to fallback to a simple fetch if possible, 
-        // or throw a descriptive error.
-        throw new Error('Puppeteer is not supported on Vercel without @sparticuz/chromium or a remote browser. Please set BROWSER_WSE_ENDPOINT environment variable.');
+        // Use @sparticuz/chromium for Vercel
+        console.log('Using @sparticuz/chromium for Vercel...');
+        const chromium = (await import('@sparticuz/chromium')).default;
+        
+        const defaultPuppeteerOptions = {
+          headless: chromium.headless,
+          args: [
+            ...chromium.args,
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--disable-blink-features=AutomationControlled',
+            '--window-size=1920,1080'
+          ],
+          executablePath: await chromium.executablePath(),
+          ...puppeteerOptions
+        };
+
+        browser = await puppeteer.launch(defaultPuppeteerOptions);
       }
     } else {
       // Find chromium path on Linux
