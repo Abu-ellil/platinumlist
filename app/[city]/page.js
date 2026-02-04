@@ -19,6 +19,9 @@ async function fetchCityData(citySlug) {
     }
     
     const data = await response.json();
+    console.log('--- City Page Data Log ---');
+    console.log(data);
+    console.log('--- End City Page Data Log ---');
     return data;
   } catch (error) {
     console.error('Error fetching city data:', error);

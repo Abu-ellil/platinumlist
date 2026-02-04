@@ -19,6 +19,10 @@ const Cities = () => {
                 const response = await fetch('/api/home');
                 const result = await response.json();
 
+                console.log('--- Client-Side Home Cities Data Log ---');
+                console.log(result);
+                console.log('--- End Log ---');
+
                 if (result.success) {
                     setCitiesData(result.data.cities);
                     setSectionTitle(result.data.sectionTitle || 'اختر مدينتك');

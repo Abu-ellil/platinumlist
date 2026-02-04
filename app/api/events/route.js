@@ -568,7 +568,7 @@ export async function GET(request) {
         map_image: manualEvent.map_image || metadata?.map_image || null  // Add map_image to response
       };
 
-      return NextResponse.json({
+      const responseData = {
         success: true,
         data: eventData,
         cached: false,
@@ -580,7 +580,13 @@ export async function GET(request) {
         },
         isManual: true,
         scrapedAt: new Date().toISOString()
-      });
+      };
+      
+      console.log('--- API Event (Manual) Data Log ---');
+      console.log(responseData);
+      console.log('--- End Log ---');
+
+      return NextResponse.json(responseData);
     }
     
     // FALLBACK: If not found in database, try scraping
@@ -609,7 +615,7 @@ export async function GET(request) {
       }, { status: 500 });
     }
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       data: result.data,
       cached: result.cached,
@@ -621,7 +627,13 @@ export async function GET(request) {
       },
       isManual: false,
       scrapedAt: new Date().toISOString()
-    });
+    };
+
+    console.log('--- API Event (Scraped) Data Log ---');
+    console.log(responseData);
+    console.log('--- End Log ---');
+
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Events API error:', error);

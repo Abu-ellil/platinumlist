@@ -538,14 +538,20 @@ export async function GET(request, { params }) {
       lastScraped: new Date().toISOString()
     };
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       data: hybridData,
       cached: result.cached,
       cacheAge: result.cacheAge || 0,
       slug: slug,
       scrapedAt: new Date().toISOString()
-    });
+    };
+
+    console.log('--- API City Data Log ---');
+    console.log(responseData);
+    console.log('--- End Log ---');
+
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('API error:', error);

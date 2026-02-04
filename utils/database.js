@@ -1,5 +1,5 @@
-import connectDB from './mongodb';
-import { Event, City, Setting, OTP } from '../models';
+import connectDB from './mongodb.js';
+import { Event, City, Setting, OTP } from '../models/index.js';
 
 /**
  * Database Manager for Manual Events using MongoDB

@@ -12,6 +12,12 @@ const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError }) => {
         // Set isClient to true once component mounts on client
         setIsClient(true);
         
+        // Log the scraped data to the browser console for debugging
+        console.log('--- Client-Side Scraped Data Log ---');
+        console.log(`City: ${citySlug}`);
+        console.log('Events Data:', eventsData);
+        console.log('--- End Log ---');
+        
         const checkScreenSize = () => {
             setIsMobile(window.innerWidth < 760);
         };

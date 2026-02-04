@@ -1,4 +1,4 @@
-import { ScraperCache } from '../models';
+import { ScraperCache } from '../models/index.js';
 
 /**
  * Cache Manager using MongoDB for persistent caching

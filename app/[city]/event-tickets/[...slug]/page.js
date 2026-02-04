@@ -29,6 +29,9 @@ async function fetchEventData(slug, city) {
         }
         
         const data = await response.json();
+        console.log('--- Event Page Data Log ---');
+        console.log(data);
+        console.log('--- End Event Page Data Log ---');
         
         // Process pricing data to ensure consistent format
         if (data.success && data.data) {

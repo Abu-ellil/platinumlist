@@ -13,6 +13,11 @@ const SliderWrapper = ({ sliderData }) => {
             setIsMobile(window.innerWidth < 760);
         };
 
+        // Log the scraped event data to the browser console
+        console.log('--- Client-Side Event Data Log ---');
+        console.log('Slider Data:', sliderData);
+        console.log('--- End Log ---');
+
         // Initial check
         checkScreenSize();
         setIsLoading(false);

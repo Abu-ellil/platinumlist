@@ -287,16 +287,9 @@ export async function scrapePage(options = {}) {
     console.log('--- Scraped Data Start ---');
     console.log(`URL: ${url}`);
     if (typeof extractedData === 'object') {
-      console.log('Data structure keys:', Object.keys(extractedData));
-      // Log a preview of the data (first 500 characters if it's a string, or the whole object if small)
-      const dataString = JSON.stringify(extractedData, null, 2);
-      if (dataString.length > 1000) {
-        console.log('Data Preview (first 1000 chars):', dataString.substring(0, 1000) + '...');
-      } else {
-        console.log('Full Data:', dataString);
-      }
+      console.log('Full Data:', JSON.stringify(extractedData, null, 2));
     } else {
-      console.log('Data (non-object):', String(extractedData).substring(0, 500) + '...');
+      console.log('Full Data:', String(extractedData));
     }
     console.log('--- Scraped Data End ---');
 
