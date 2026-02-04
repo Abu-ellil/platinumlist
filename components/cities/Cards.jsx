@@ -1,6 +1,6 @@
 'use client'
 
-const Cards = ({ citySlug, eventsData = [], sectionTitle = 'أبرز الفعاليات', serverError = false }) => {
+const Cards = ({ citySlug, eventsData = [], sectionTitle = 'أبرز الفعاليات', serverError = false, isFallback = false }) => {
     // Split events into two groups for the two sliders
     const firstSliderEvents = eventsData.slice(0, 4);
     const secondSliderEvents = eventsData.slice(4, 8);
@@ -179,6 +179,19 @@ const Cards = ({ citySlug, eventsData = [], sectionTitle = 'أبرز الفعا�
                                 marginBottom: '1rem'
                             }}>
                                 خطأ في تحميل الفعاليات.
+                            </div>
+                        )}
+                        {isFallback && !serverError && (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                padding: '1rem', 
+                                color: '#28a745', 
+                                fontSize: '0.9rem',
+                                marginBottom: '1rem',
+                                backgroundColor: '#d4edda',
+                                borderRadius: '4px'
+                            }}>
+                                جلب بيانات من قاعدة البيانات
                             </div>
                         )}
                         <div className="content-slider content-wrapper no-mobile">

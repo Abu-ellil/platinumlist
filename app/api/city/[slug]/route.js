@@ -487,7 +487,77 @@ export async function GET(request, { params }) {
     console.log(`[API /api/city/${slug}] scrapePage completed. Success:`, result.success, 'Cached:', result.cached);
 
     if (!result.success) {
-      // If scraping fails but we have manual events, return them
+      console.log(`[API /api/city/${slug}] Scraping failed:`, result.error);
+      console.log(`[API /api/city/${slug}] Attempting fallback to database events...`);
+
+      // Try to get all events from database as fallback
+      try {
+        const allDbEvents = await db.getAllEvents();
+        
+        if (allDbEvents.length > 0) {
+          console.log(`[API /api/city/${slug}] Found ${allDbEvents.length} events in database`);
+          
+          const formattedDbEvents = allDbEvents.map(event => ({
+            id: `db_${event.id}`,
+            title: event.title,
+            price: event.price || '',
+            crossedPrice: event.crossed_price || null,
+            date: event.date || '',
+            label: event.label || null,
+            rating: event.rating || null,
+            accelerator: event.accelerator || null,
+            acceleratorType: event.accelerator_type,
+            discount: event.discount || null,
+            href: event.href || event.external_url || `/${event.city_slug || slug}/event-tickets/${event.slug}`,
+            imageUrl: event.image_url || '/images/default-event.jpg',
+            imageFull: event.image_full || event.image_url || '/images/default-event.jpg',
+            mobileThumb: event.mobile_thumb || event.image_url || '/images/default-event.jpg',
+            hierarchy: event.category || '',
+            alt: event.alt || event.title,
+            isManual: true,
+            priority: event.priority || 0,
+            venue: event.venue,
+            address: event.address,
+            startTime: event.start_time,
+            endTime: event.end_time,
+            description: event.description,
+            tags: event.tags ? JSON.parse(event.tags) : [],
+            metadata: event.metadata ? JSON.parse(event.metadata) : {},
+            slug: event.slug
+          }));
+
+          return NextResponse.json({
+            success: true,
+            data: {
+              title: `${slug} - Platinum List`,
+              currentCityName: slug,
+              sectionTitle: 'أبرز الفعاليات',
+              sectionLink: null,
+              events: formattedDbEvents,
+              totalEvents: formattedDbEvents.length,
+              nearbyCities: [],
+              totalNearbyCities: 0,
+              sliderBanners: [],
+              totalSliderBanners: 0,
+              headerNavigation: { mainLinks: [], dropdowns: {} },
+              lastScraped: new Date().toISOString(),
+              isFallback: true,
+              manualEventsOnly: true
+            },
+            cached: false,
+            cacheAge: 0,
+            slug: slug,
+            scrapedAt: new Date().toISOString(),
+            fallbackSource: 'database'
+          });
+        } else {
+          console.log(`[API /api/city/${slug}] No events found in database`);
+        }
+      } catch (dbError) {
+        console.error(`[API /api/city/${slug}] Database fallback error:`, dbError.message);
+      }
+
+      // If scraping fails and no database events, check manual events
       if (formattedManualEvents.length > 0) {
         return NextResponse.json({
           success: true,
@@ -516,7 +586,7 @@ export async function GET(request, { params }) {
 
       return NextResponse.json({
         success: false,
-        error: result.error,
+        error: result.error || 'Failed to fetch events from both scraping and database',
         slug: slug
       }, { status: 500 });
     }

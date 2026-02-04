@@ -24,8 +24,29 @@ const Cities = () => {
                 console.log('--- End Log ---');
 
                 if (result.success) {
-                    setCitiesData(result.data.cities);
-                    setSectionTitle(result.data.sectionTitle || 'اختر مدينتك');
+                    if (result.data.isFallback && result.data.events) {
+                        // Extract unique cities from events
+                        const cityMap = new Map();
+                        result.data.events.forEach(event => {
+                            const citySlug = event.href ? event.href.match(/\/([^\/]+)/)?.[1] : null;
+                            if (citySlug && !cityMap.has(citySlug)) {
+                                cityMap.set(citySlug, {
+                                    id: citySlug,
+                                    name: citySlug.charAt(0).toUpperCase() + citySlug.slice(1),
+                                    href: `/${citySlug}`,
+                                    image: '/images/default-city.jpg',
+                                    flag: 'https://cdn.platinumlist.net/dist/v799/img/flags/4x3/sa.svg',
+                                    flagAlt: citySlug
+                                });
+                            }
+                        });
+                        setCitiesData(Array.from(cityMap.values()));
+                        setSectionTitle(result.data.sectionTitle || 'اختر مدينتك');
+                        console.log(`[Cities] Fallback: extracted ${cityMap.size} cities from database events`);
+                    } else {
+                        setCitiesData(result.data.cities);
+                        setSectionTitle(result.data.sectionTitle || 'اختر مدينتك');
+                    }
                 } else {
                     throw new Error(result.error || 'Failed to fetch cities');
                 }

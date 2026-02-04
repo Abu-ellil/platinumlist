@@ -40,6 +40,7 @@ export default async function CityPage({ params }) {
   const headerNavigation = cityData?.data?.headerNavigation || { mainLinks: [], dropdowns: {} };
   const sectionTitle = cityData?.data?.sectionTitle || 'أبرز الفعاليات';
   const currentCityName = cityData?.data?.currentCityName || 'المدينة';
+  const isFallback = cityData?.fallbackSource === 'database';
 
       return (
     <div>
@@ -50,6 +51,7 @@ export default async function CityPage({ params }) {
         eventsData={eventsData} 
         sectionTitle={sectionTitle}
         serverError={!cityData?.success}
+        isFallback={isFallback}
       />
       <NearbyWrapper citiesData={nearbyCities} />
       <Categories />

@@ -1,6 +1,6 @@
 'use client'
 
-const CardsMobile = ({ citySlug, eventsData = [], sectionTitle = 'المعالم السياحية المميزة', serverError = false }) => {
+const CardsMobile = ({ citySlug, eventsData = [], sectionTitle = 'المعالم السياحية المميزة', serverError = false, isFallback = false }) => {
     // Function to create GA4 click data
     const createGA4ClickData = (event, type = "top_attractions_all") => {
         return JSON.stringify({
@@ -142,6 +142,19 @@ const CardsMobile = ({ citySlug, eventsData = [], sectionTitle = 'المعالم
                                 marginBottom: '1rem'
                             }}>
                                 خطأ في تحميل الفعاليات.
+                            </div>
+                        )}
+                        {isFallback && !serverError && (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                padding: '1rem', 
+                                color: '#28a745', 
+                                fontSize: '0.9rem',
+                                marginBottom: '1rem',
+                                backgroundColor: '#d4edda',
+                                borderRadius: '4px'
+                            }}>
+                                جلب بيانات من قاعدة البيانات
                             </div>
                         )}
                         <div className="content-slider content-wrapper no-mobile">

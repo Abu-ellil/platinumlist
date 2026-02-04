@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Cards from './Cards';
 import CardsMobile from './CardsMobile';
 
-const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError }) => {
+const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError, isFallback }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [isClient, setIsClient] = useState(false);
 
@@ -16,6 +16,7 @@ const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError }) => {
         console.log('--- Client-Side Scraped Data Log ---');
         console.log(`City: ${citySlug}`);
         console.log('Events Data:', eventsData);
+        console.log('Is Fallback:', isFallback);
         console.log('--- End Log ---');
         
         const checkScreenSize = () => {
@@ -72,6 +73,7 @@ const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError }) => {
                     eventsData={eventsData}
                     sectionTitle={sectionTitle}
                     serverError={serverError}
+                    isFallback={isFallback}
                 />
             ) : (
                 <Cards
@@ -79,6 +81,7 @@ const CardsWrapper = ({ citySlug, eventsData, sectionTitle, serverError }) => {
                     eventsData={eventsData}
                     sectionTitle={sectionTitle}
                     serverError={serverError}
+                    isFallback={isFallback}
                 />
             )}
         </>

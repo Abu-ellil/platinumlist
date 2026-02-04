@@ -104,9 +104,82 @@ export async function GET(request) {
     console.log('[API /api/home] scrapePage completed. Success:', result.success, 'Cached:', result.cached);
 
     if (!result.success) {
+      console.log('[API /api/home] Scraping failed:', result.error);
+      console.log('[API /api/home] Attempting fallback to database events...');
+
+      try {
+        const allDbEvents = await db.getAllEvents();
+        
+        if (allDbEvents.length > 0) {
+          console.log(`[API /api/home] Found ${allDbEvents.length} events in database`);
+          
+          const formattedDbEvents = allDbEvents.map(event => ({
+            id: `db_${event.id}`,
+            title: event.title,
+            price: event.price || '',
+            crossedPrice: event.crossed_price || null,
+            date: event.date || '',
+            label: event.label || null,
+            rating: event.rating || null,
+            accelerator: event.accelerator || null,
+            acceleratorType: event.accelerator_type,
+            discount: event.discount || null,
+            href: event.href || event.external_url || `/${event.city_slug || 'riyadh'}/event-tickets/${event.slug}`,
+            imageUrl: event.image_url || '/images/default-event.jpg',
+            imageFull: event.image_full || event.image_url || '/images/default-event.jpg',
+            mobileThumb: event.mobile_thumb || event.image_url || '/images/default-event.jpg',
+            hierarchy: event.category || '',
+            alt: event.alt || event.title,
+            isManual: true,
+            priority: event.priority || 0,
+            venue: event.venue,
+            address: event.address,
+            startTime: event.start_time,
+            endTime: event.end_time,
+            description: event.description,
+            tags: event.tags ? JSON.parse(event.tags) : [],
+            metadata: event.metadata ? JSON.parse(event.metadata) : {},
+            slug: event.slug
+          }));
+
+          const fallbackData = {
+            title: 'Platinum List - Database Events',
+            currentCityName: 'all',
+            sectionTitle: 'أبرز الفعاليات',
+            sectionLink: null,
+            events: formattedDbEvents,
+            totalEvents: formattedDbEvents.length,
+            nearbyCities: [],
+            totalNearbyCities: 0,
+            sliderBanners: [],
+            totalSliderBanners: 0,
+            headerNavigation: { mainLinks: [], dropdowns: {} },
+            lastScraped: new Date().toISOString(),
+            isFallback: true
+          };
+
+          return NextResponse.json({
+            success: true,
+            data: fallbackData,
+            cached: false,
+            cacheAge: 0,
+            parameters: {
+              page,
+              skipCache
+            },
+            scrapedAt: new Date().toISOString(),
+            fallbackSource: 'database'
+          });
+        } else {
+          console.log('[API /api/home] No events found in database');
+        }
+      } catch (dbError) {
+        console.error('[API /api/home] Database fallback error:', dbError.message);
+      }
+
       return NextResponse.json({
         success: false,
-        error: result.error,
+        error: result.error || 'Failed to fetch events from both scraping and database',
         url: url
       }, { status: 500 });
     }
