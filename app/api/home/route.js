@@ -66,8 +66,13 @@ function homeCitiesExtractor(content, page, cheerio) {
   };
 }
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function GET(request) {
   try {
+    console.log('[API /api/home] Starting request at:', new Date().toISOString());
+    
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const skipCache = searchParams.get('skipCache') === 'true';
@@ -91,8 +96,12 @@ export async function GET(request) {
       }
     };
 
+    console.log('[API /api/home] About to call scrapePage for:', url);
+
     // Use the scraper middleware
     const result = await scrapePage(scrapingOptions);
+
+    console.log('[API /api/home] scrapePage completed. Success:', result.success, 'Cached:', result.cached);
 
     if (!result.success) {
       return NextResponse.json({

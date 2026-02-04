@@ -348,14 +348,7 @@ export async function scrapePage(options = {}) {
       try {
         const cachedResult = await cache.get(cacheKey);
         if (cachedResult) {
-          // Mark cache as stale since fresh fetch failed
-          try {
-            if (cache.markAsStale) {
-              await cache.markAsStale(cacheKey);
-            }
-          } catch (e) { /* ignore */ }
-          
-          console.log(`Scraping failed, returning stale cached data for: ${cacheKey}`);
+          console.log(`Scraping failed, returning cached data for: ${cacheKey} (cacheAge: ${cachedResult.age}ms)`);
           
           return {
             success: true,

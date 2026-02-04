@@ -420,9 +420,14 @@ function cityEventsExtractor(content, page, cheerio, baseUrl) {
   };
 }
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function GET(request, { params }) {
   try {
     const { slug } = await params;
+    
+    console.log(`[API /api/city/${slug}] Starting request at:`, new Date().toISOString());
     
     // Initialize database
     await db.init();
@@ -474,8 +479,12 @@ export async function GET(request, { params }) {
 
     console.log(scrapingOptions);
 
+    console.log(`[API /api/city/${slug}] About to call scrapePage for:`, baseUrl);
+
     // Use the scraper middleware
     const result = await scrapePage(scrapingOptions);
+
+    console.log(`[API /api/city/${slug}] scrapePage completed. Success:`, result.success, 'Cached:', result.cached);
 
     if (!result.success) {
       // If scraping fails but we have manual events, return them
