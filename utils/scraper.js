@@ -236,15 +236,21 @@ export async function scrapePage(options = {}) {
       });
 
       // Navigate and wait for raw response
+    try {
       await page.goto(url, {
         waitUntil: defaultPageOptions.waitUntil,
         timeout: defaultPageOptions.timeout
       });
-
       content = await responsePromise;
-      
-    } else {
-      // Normal navigation for rendered content
+    } catch (gotoError) {
+      console.error(`Page.goto error for ${url}:`, gotoError.message);
+      throw gotoError;
+    }
+    
+  } else {
+    // Normal navigation for rendered content
+    try {
+      console.log(`Navigating to: ${url}`);
       await page.goto(url, {
         waitUntil: defaultPageOptions.waitUntil,
         timeout: defaultPageOptions.timeout
@@ -252,7 +258,7 @@ export async function scrapePage(options = {}) {
 
       // Wait for specific selector if provided, otherwise wait for body
       const selectorToWait = pageOptions.waitForSelector || (!pageOptions.ignoreBody ? 'body' : null);
-      const waitTimeout = pageOptions.waitForSelectorTimeout || 10000;
+      const waitTimeout = pageOptions.waitForSelectorTimeout || 15000;
       
       if (selectorToWait) {
         console.log(`Waiting for selector: ${selectorToWait}`);
@@ -261,7 +267,7 @@ export async function scrapePage(options = {}) {
       
       // Wait for custom function if provided
       if (pageOptions.waitForFunction) {
-        const functionTimeout = pageOptions.waitForFunctionTimeout || 10000;
+        const functionTimeout = pageOptions.waitForFunctionTimeout || 15000;
         console.log(`Waiting for function condition...`);
         await page.waitForFunction(pageOptions.waitForFunction, { timeout: functionTimeout });
         console.log(`Function condition met.`);
@@ -275,7 +281,23 @@ export async function scrapePage(options = {}) {
       
       // Get rendered page content
       content = await page.content();
+    } catch (navigationError) {
+      console.error(`Navigation or waiting error for ${url}:`, navigationError.message);
+      
+      // Take a screenshot on error if possible (for debugging in environments that support it)
+      try {
+        if (browser && page) {
+          console.log('Attempting to get content even after error...');
+          content = await page.content();
+          console.log('Successfully retrieved content after error.');
+        } else {
+          throw navigationError;
+        }
+      } catch (e) {
+        throw navigationError;
+      }
     }
+  }
 
     // Extract data using the provided function or default
     // Pass the base URL to data extractor for converting relative URLs
@@ -327,7 +349,12 @@ export async function scrapePage(options = {}) {
         const cachedResult = await cache.get(cacheKey);
         if (cachedResult) {
           // Mark cache as stale since fresh fetch failed
-          await cache.markAsStale(cacheKey);
+          try {
+            if (cache.markAsStale) {
+              await cache.markAsStale(cacheKey);
+            }
+          } catch (e) { /* ignore */ }
+          
           console.log(`Scraping failed, returning stale cached data for: ${cacheKey}`);
           
           return {
@@ -344,6 +371,36 @@ export async function scrapePage(options = {}) {
       } catch (cacheError) {
         console.warn('Failed to retrieve cached data after scraping error:', cacheError.message);
       }
+    }
+
+    // Try simple fetch as a last resort if Puppeteer failed and no cache
+    try {
+      console.log(`Attempting simple fetch fallback for: ${url}`);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8'
+        }
+      });
+      
+      if (response.ok) {
+        const html = await response.text();
+        const extractedData = await dataExtractor(html, null, cheerio, url);
+        
+        console.log('Simple fetch fallback successful');
+        
+        return {
+          success: true,
+          data: extractedData,
+          cached: false,
+          fresh: true,
+          isFallback: true,
+          url: url
+        };
+      }
+    } catch (fallbackError) {
+      console.error('Simple fetch fallback also failed:', fallbackError.message);
     }
 
     return {

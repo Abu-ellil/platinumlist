@@ -25,7 +25,7 @@ const nextConfig = {
           has: [
             {
               type: 'host',
-              value: '(?<city>[^.]+)\\.platinumlist\\.net',
+              value: '(?<city>[^.]+)\\.(platinumlist\\.net|plateniemlist\\.net)',
             },
           ],
           destination: '/:city',
@@ -36,7 +36,7 @@ const nextConfig = {
           has: [
             {
               type: 'host',
-              value: '(?<city>[^.]+)\\.platinumlist\\.net',
+              value: '(?<city>[^.]+)\\.(platinumlist\\.net|plateniemlist\\.net)',
             },
           ],
           destination: '/:city/$1',

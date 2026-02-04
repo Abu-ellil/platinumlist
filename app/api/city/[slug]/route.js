@@ -461,8 +461,12 @@ export async function GET(request, { params }) {
     }));
 
     // Configure scraping options
+    const baseUrl = slug === 'platinumlist' 
+      ? 'https://platinumlist.net/ar' 
+      : `https://${slug}.platinumlist.net/ar`;
+
     const scrapingOptions = {
-      url: `https://${slug}.platinumlist.net/ar`,
+      url: baseUrl,
       cacheKey: `city-events-${slug}`, // Unique cache key for this city
       cacheTTL: 10 * 60 * 1000, // 10 minutes cache
       dataExtractor: cityEventsExtractor

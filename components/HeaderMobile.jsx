@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import CityModal from './CityModal';
 
 const HeaderMobile = ({ navigationData = { mainLinks: [], dropdowns: {} }, cityData = {}, currentCityName }) => {
-    const citySlug = cityData?.data?.slug || 'riyadh';
+    const citySlug = cityData?.data?.slug || cityData?.slug || 'riyadh';
 
     console.log('HeaderMobile cityData:', cityData);
     console.log('HeaderMobile citySlug:', citySlug);
